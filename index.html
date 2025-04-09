@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduSphere: A Smart, Inclusive & AI-Powered Learning Ecosystem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="https://unpkg.com/three@0.132.2/build/three.min.js"></script>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiRWR1U3BoZXJlIiwic2hvcnRfbmFtZSI6IkVkdVNwaGVyZSIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZmZmZmZmIiwidGhlbWVfY29sb3IiOiIjMWE0ZjhiIiwiaWNvbnMiOlt7InNyYyI6Ii9pY29uLnBuZyIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9wbmcifV19">
+
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .gradient-bg {
+            background: linear-gradient(120deg, #1a4f8b, #2980b9);
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .loading-spinner {
+            display: none;
+            animation: spin 1s linear infinite;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .chat-bubble {
+            max-width: 75%;
+            border-radius: 18px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+        }
+        .user-bubble {
+            background-color: #e3f2fd;
+            border-bottom-right-radius: 4px;
+            align-self: flex-end;
+        }
+        .ai-bubble {
+            background-color: #f1f1f1;
+            border-bottom-left-radius: 4px;
+            align-self: flex-start;
+        }
+        .progress-ring {
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .code-editor {
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+        }
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Dark Mode */
+        .dark {
+            background-color: #1f2937;
+            color: #f3f4f6;
+        }
+        .dark .bg-white {
+            background-color: #374151 !important;
+            color: #f3f4f6;
+        }
+        .dark .text-gray-800 {
+            color: #f3f4f6 !important;
+        }
+        .dark .text-gray-700, .dark .text-gray-600 {
+            color: #d1d5db !important;
+        }
+        .dark .border {
+            border-color: #4b5563 !important;
+        }
+
+        /* PWA Support */
+        @media (display-mode: standalone) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50" id="body">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white p-4 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="bi bi-book-half text-2xl"></i>
+                <span class="text-xl font-bold">EduSphere</span>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="#features" class="hover:text-blue-200">Features</a>
+                <a href="#courses" class="hover:text-blue-200">Courses</a>
+                <a href="#community" class="hover:text-blue-200">Community</a>
+                <button onclick="toggleDarkMode()" class="hover:text-blue-200">
+                    <i id="darkModeIcon" class="bi bi-moon"></i>
+                </button>
+                <button onclick="toggleLoginModal()" class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50">Login</button>
+            </div>
+            <button class="md:hidden" onclick="toggleMobileMenu()">
+                <i class="bi bi-list text-2xl"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="hidden md:hidden bg-white shadow-lg absolute w-full z-50">
+        <div class="p-4 space-y-3">
+            <a href="#features" class="block py-2 hover:text-blue-600">Features</a>
+            <a href="#courses" class="block py-2 hover:text-blue-600">Courses</a>
+            <a href="#community" class="block py-2 hover:text-blue-600">Community</a>
+            <button onclick="toggleDarkMode()" class="block py-2 hover:text-blue-600 w-full text-left">
+                <i class="bi bi-moon mr-2"></i> Toggle Dark Mode
+            </button>
+            <button onclick="toggleLoginModal()" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Login</button>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="container mx-auto px-4 py-12">
+        <div class="flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 space-y-6">
+                <div class="flex items-center">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2">AI-Powered</span>
+                    <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">SDG 4</span>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-800">
+                    Transform Your Learning Journey with AI
+                </h1>
+                <p class="text-gray-600 text-lg">
+                    Experience personalized education powered by artificial intelligence, gamification, and cutting-edge technology.
+                </p>
+                <div class="flex space-x-4">
+                    <button onclick="showDemo()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center">
+                        <i class="bi bi-play-circle mr-2"></i> Watch Demo
+                    </button>
+                    <button onclick="toggleSignupModal()" class="border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50">
+                        Get Started
+                    </button>
+                </div>
+            </div>
+            <div class="md:w-1/2 mt-8 md:mt-0">
+                <lottie-player src="https://assets4.lottiefiles.com/packages/lf20_wcnjmdp1.json" background="transparent" speed="1" style="width: 100%; height: 400px;" loop autoplay></lottie-player>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div id="features" class="bg-white py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">Smart Learning Features</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature Cards -->
+                <div class="feature-card bg-white p-6 rounded-xl shadow-md transition-all duration-300">
+                    <i class="bi bi-robot text-4xl text-blue-600"></i>
+                    <h3 class="text-xl font-semibold mt-4">AI-Powered Learning</h3>
+                    <p class="text-gray-600 mt-2">Personalized curriculum and adaptive assessments based on your learning style.</p>
+                </div>
+                <div class="feature-card bg-white p-6 rounded-xl shadow-md transition-all duration-300">
+                    <i class="bi bi-trophy text-4xl text-blue-600"></i>
+                    <h3 class="text-xl font-semibold mt-4">Gamified Experience</h3>
+                    <p class="text-gray-600 mt-2">Learn while earning XP, badges, and competing on leaderboards.</p>
+                </div>
+                <div class="feature-card bg-white p-6 rounded-xl shadow-md transition-all duration-300">
+                    <i class="bi bi-camera-video text-4xl text-blue-600"></i>
+                    <h3 class="text-xl font-semibold mt-4">Virtual Classrooms</h3>
+                    <p class="text-gray-600 mt-2">Interactive online sessions with real-time collaboration tools.</p>
+                </div>
+                <div class="feature-card bg-white p-6 rounded-xl shadow-md transition-all duration-300">
+                    <i class="bi bi-code-slash text-4xl text-blue-600"></i>
+                    <h3 class="text-xl font-semibold mt-4">Interactive Coding</h3>
+                    <p class="text-gray-600 mt-2">Code in-browser with real-time AI suggestions and feedback.</p>
+                </div>
+                <div class="feature-card bg-white p-6 rounded-xl shadow-md transition-all duration-300">
+                    <i class="bi bi-translate text-4xl text-blue-600"></i>
+                    <h3 class="text-xl font-semibold mt-4">Language Learning</h3>
+                    <p class="text-gray-600 mt-2">Practice with AI chatbots and get instant pronunciation feedback.</p>
+                </div>
+                <div class="feature-card bg-white p-6 rounded-xl shadow-md transition-all duration-300">
+                    <i class="bi bi-cash-stack text-4xl text-blue-600"></i>
+                    <h3 class="text-xl font-semibold mt-4">Scholarship Finder</h3>
+                    <p class="text-gray-600 mt-2">AI matches you with scholarships you're eligible for.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Courses Preview Section -->
+    <div id="courses" class="bg-gray-100 py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-4">Popular Courses</h2>
+            <p class="text-gray-600 text-center mb-12">Discover courses tailored to your interests and learning pace</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Course Card 1 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Machine Learning Course" class="w-full h-48 object-cover">
+                        <div class="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 m-2 rounded-full text-sm">
+                            4.9 ★
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-2">
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">AI</span>
+                            <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full ml-2">Beginner</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Introduction to Machine Learning</h3>
+                        <p class="text-gray-600 mb-4">Learn the fundamentals of ML algorithms and applications.</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="relative h-8 w-8 rounded-full overflow-hidden bg-gray-200">
+                                    <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="Instructor" class="object-cover">
+                                </div>
+                                <span class="text-sm text-gray-700 ml-2">Dr. Sarah Chen</span>
+                            </div>
+                            <span class="text-blue-600 font-semibold">Free</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Course Card 2 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1523800503107-5bc3ba2a6f81?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Coding Course" class="w-full h-48 object-cover">
+                        <div class="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 m-2 rounded-full text-sm">
+                            4.8 ★
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-2">
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">STEM</span>
+                            <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full ml-2">Intermediate</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Full-Stack Web Development</h3>
+                        <p class="text-gray-600 mb-4">Build modern web applications with MERN stack.</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="relative h-8 w-8 rounded-full overflow-hidden bg-gray-200">
+                                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="Instructor" class="object-cover">
+                                </div>
+                                <span class="text-sm text-gray-700 ml-2">Alex Johnson</span>
+                            </div>
+                            <span class="text-blue-600 font-semibold">Free</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Course Card 3 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1580894732444-8eceed7279d7?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Language Course" class="w-full h-48 object-cover">
+                        <div class="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 m-2 rounded-full text-sm">
+                            4.7 ★
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-2">
+                            <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Language</span>
+                            <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full ml-2">Beginner</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Spanish for Beginners</h3>
+                        <p class="text-gray-600 mb-4">Learn Spanish with AI chatbots and interactive exercises.</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="relative h-8 w-8 rounded-full overflow-hidden bg-gray-200">
+                                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="Instructor" class="object-cover">
+                                </div>
+                                <span class="text-sm text-gray-700 ml-2">Maria Rodriguez</span>
+                            </div>
+                            <span class="text-blue-600 font-semibold">Free</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-10">
+                <button class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700" onclick="toggleLoginModal()">
+                    Explore All Courses
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gamification Preview -->
+    <div class="bg-white py-16">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 space-y-6 mb-8 md:mb-0 md:pr-8">
+                    <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Gamification</span>
+                    <h2 class="text-3xl font-bold text-gray-800">Learn Through Play</h2>
+                    <p class="text-gray-600">Our gamified approach makes learning addictive and enjoyable. Earn XP, unlock achievements, and climb the leaderboards—all while mastering new skills.</p>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="font-semibold">Experience Points</h4>
+                                <i class="bi bi-star-fill text-yellow-500"></i>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-blue-600 h-2.5 rounded-full" style="width: 65%"></div>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2">Level 7 (650 XP)</p>
+                        </div>
+                        
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="font-semibold">Weekly Streak</h4>
+                                <i class="bi bi-fire text-orange-500"></i>
+                            </div>
+                            <div class="flex justify-between">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center">
+                                        <span class="text-xs">M</span>
+                                    </div>
+                                    <i class="bi bi-check-circle-fill text-green-500 mt-1"></i>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center">
+                                        <span class="text-xs">T</span>
+                                    </div>
+                                    <i class="bi bi-check-circle-fill text-green-500 mt-1"></i>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 h-8 rounded-full bg-purple-300 flex items-center justify-center">
+                                        <span class="text-xs">W</span>
+                                    </div>
+                                    <i class="bi bi-circle text-gray-400 mt-1"></i>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center">
+                                        <span class="text-xs">T</span>
+                                    </div>
+                                    <i class="bi bi-circle text-gray-400 mt-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-lg mt-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-semibold">Recent Badges</h4>
+                            <span class="text-sm text-blue-600">View All</span>
+                        </div>
+                        <div class="flex space-x-4">
+                            <div class="flex flex-col items-center">
+                                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <i class="bi bi-lightbulb-fill text-yellow-500 text-lg"></i>
+                                </div>
+                                <span class="text-xs mt-1">Quick Thinker</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                                    <i class="bi bi-book-fill text-green-600 text-lg"></i>
+                                </div>
+                                <span class="text-xs mt-1">Bookworm</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                                    <i class="bi bi-calendar-check-fill text-purple-600 text-lg"></i>
+                                </div>
+                                <span class="text-xs mt-1">Consistent</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="md:w-1/2">
+                    <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 shadow-xl">
+                        <h3 class="text-white text-2xl font-semibold mb-4">Class Leaderboard</h3>
+                        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                            <div class="flex items-center mb-4 p-3 bg-white bg-opacity-20 rounded-lg">
+                                <div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center mr-4">
+                                    <span class="text-white font-bold">1</span>
+                                </div>
+                                <div class="relative h-10 w-10 rounded-full overflow-hidden bg-gray-200 mr-3">
+                                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="User" class="object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-white font-medium">Emma Wilson</p>
+                                    <div class="w-full bg-white bg-opacity-30 rounded-full h-1.5 mt-1">
+                                        <div class="bg-yellow-400 h-1.5 rounded-full" style="width: 98%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-white font-bold">980 XP</span>
+                            </div>
+                            
+                            <div class="flex items-center mb-4 p-3 bg-white bg-opacity-10 rounded-lg">
+                                <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center mr-4">
+                                    <span class="text-gray-800 font-bold">2</span>
+                                </div>
+                                <div class="relative h-10 w-10 rounded-full overflow-hidden bg-gray-200 mr-3">
+                                    <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="User" class="object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-white font-medium">James Taylor</p>
+                                    <div class="w-full bg-white bg-opacity-30 rounded-full h-1.5 mt-1">
+                                        <div class="bg-white h-1.5 rounded-full" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-white font-bold">850 XP</span>
+                            </div>
+                            
+                            <div class="flex items-center mb-4 p-3 bg-white bg-opacity-10 rounded-lg">
+                                <div class="w-8 h-8 rounded-full bg-amber-700 flex items-center justify-center mr-4">
+                                    <span class="text-white font-bold">3</span>
+                                </div>
+                                <div class="relative h-10 w-10 rounded-full overflow-hidden bg-gray-200 mr-3">
+                                    <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="User" class="object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-white font-medium">Sofia Martinez</p>
+                                    <div class="w-full bg-white bg-opacity-30 rounded-full h-1.5 mt-1">
+                                        <div class="bg-amber-500 h-1.5 rounded-full" style="width: 76%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-white font-bold">760 XP</span>
+                            </div>
+                            
+                            <div class="bg-blue-600 bg-opacity-30 border border-dashed border-white border-opacity-50 rounded-lg p-3 flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center mr-4">
+                                    <span class="text-white font-bold">5</span>
+                                </div>
+                                <div class="relative h-10 w-10 rounded-full overflow-hidden bg-gray-200 mr-3">
+                                    <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="User" class="object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-white font-medium">You</p>
+                                    <div class="w-full bg-white bg-opacity-30 rounded-full h-1.5 mt-1">
+                                        <div class="bg-blue-400 h-1.5 rounded-full" style="width: 65%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-white font-bold">650 XP</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Tutor Demo -->
+    <div id="community" class="bg-gray-50 py-16">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row-reverse items-center">
+                <div class="md:w-1/2 mb-8 md:mb-0 md:pl-8">
+                    <span class="bg-cyan-100 text-cyan-800 text-xs font-medium px-2.5 py-0.5 rounded-full">AI-Powered Learning</span>
+                    <h2 class="text-3xl font-bold text-gray-800 mt-2">Your Personal AI Study Buddy</h2>
+                    <p class="text-gray-600 mt-4">Our AI tutor is available 24/7 to answer questions, explain concepts, and help you practice with interactive exercises tailored to your learning style.</p>
+                    
+                    <div class="mt-6 space-y-4">
+                        <div class="flex items-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                <i class="bi bi-lightbulb text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Personalized Explanations</h4>
+                                <p class="text-sm text-gray-600">Get concepts explained in ways that match your learning style.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                                <i class="bi bi-chat-dots text-green-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Practice Conversations</h4>
+                                <p class="text-sm text-gray-600">Practice languages or technical concepts through natural dialogue.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-3">
+                                <i class="bi bi-journal-check text-purple-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Homework Helper</h4>
+                                <p class="text-sm text-gray-600">Get step-by-step guidance for problem-solving across subjects.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="md:w-1/2">
+                    <div class="bg-white rounded-2xl shadow-lg p-5 max-w-md mx-auto">
+                        <div class="flex items-center mb-4">
+                            <div class="relative h-10 w-10 rounded-full overflow-hidden bg-blue-100 mr-3 flex items-center justify-center">
+                                <i class="bi bi-mortarboard-fill text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">EduSphere AI Tutor</h3>
+                                <p class="text-xs text-gray-500">Always available to help</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-xl p-3 h-80 overflow-y-auto flex flex-col">
+                            <!-- AI Chat Messages -->
+                            <div class="chat-bubble ai-bubble">
+                                <p class="text-sm">Hello there! 👋 I'm your AI tutor. What would you like to learn today?</p>
+                            </div>
+                            
+                            <div class="chat-bubble user-bubble">
+                                <p class="text-sm">Can you explain how machine learning algorithms work?</p>
+                            </div>
+                            
+                            <div id="loadingBubble" class="chat-bubble ai-bubble flex items-center" style="display:none;">
+                                <div class="dot-flashing"></div>
+                            </div>
+                            
+                            <div class="chat-bubble ai-bubble">
+                                <p class="text-sm">Of course! Machine learning algorithms work by analyzing patterns in data to make predictions or decisions without being explicitly programmed. Here's a simple breakdown:</p>
+                                <ol class="text-sm mt-2 list-decimal pl-5">
+                                    <li>Data Collection: Gathering relevant information</li>
+                                    <li>Data Preprocessing: Cleaning and organizing data</li>
+                                    <li>Feature Selection: Identifying important variables</li>
+                                    <li>Model Training: Algorithm learns from patterns</li>
+                                    <li>Evaluation: Testing accuracy on new data</li>
+                                    <li>Deployment: Using the model to make predictions</li>
+                                </ol>
+                                <p class="text-sm mt-2">Would you like me to explain any of these steps in more detail?</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 flex">
+                            <input type="text" id="aiPrompt" placeholder="Ask anything..." class="flex-1 border border-gray-300 rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="simulateAIResponse()" class="bg-blue-600 text-white rounded-r-lg px-4 py-2 hover:bg-blue-700">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="mt-3 text-center">
+                            <p class="text-xs text-gray-500">Try asking about specific concepts or request practice exercises</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scholarship Section -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 py-16">
+        <div class="container mx-auto px-4 text-white">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Find Scholarships That Match Your Profile</h2>
+                <p class="text-blue-100 max-w-2xl mx-auto">Our AI-powered scholarship finder matches you with opportunities you're eligible for, saving you time and increasing your chances.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                <div class="bg-white bg-opacity-10 rounded-xl p-5 backdrop-filter backdrop-blur-sm">
+                    <div class="bg-yellow-500 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                        <i class="bi bi-search text-xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Smart Matching</h3>
+                    <p class="text-blue-100 text-sm">Our AI analyzes thousands of scholarships to find the ones that match your academic background, interests, and demographics.</p>
+                </div>
+                
+                <div class="bg-white bg-opacity-10 rounded-xl p-5 backdrop-filter backdrop-blur-sm">
+                    <div class="bg-green-500 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                        <i class="bi bi-bell text-xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Deadline Alerts</h3>
+                    <p class="text-blue-100 text-sm">Never miss an application deadline with personalized notifications for upcoming scholarships.</p>
+                </div>
+                
+                <div class="bg-white bg-opacity-10 rounded-xl p-5 backdrop-filter backdrop-blur-sm">
+                    <div class="bg-purple-500 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                        <i class="bi bi-file-earmark-text text-xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Application Assistance</h3>
+                    <p class="text-blue-100 text-sm">Get guidance on crafting compelling essays and completing applications to stand out from other candidates.</p>
+                </div>
+            </div>
+            
+            <div class="text-center mt-10">
+                <button onclick="toggleLoginModal()" class="bg-white text-blue-700 px-6 py-3 rounded-lg hover:bg-blue-50">
+                    Find Scholarships
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Testimonials Section -->
+    <div class="bg-white py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">What Our Students Say</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-gray-50 rounded-xl p-6 relative">
+                    <div class="absolute -top-4 left-6">
+                        <i class="bi bi-quote text-5xl text-blue-200"></i>
+                    </div>
+                    <div class="relative">
+                        <p class="text-gray-600 mb-4">EduSphere's AI tutor helped me master calculus when I was struggling. The personalized explanations made all the difference!</p>
+                        <div class="flex items-center">
+                            <div class="relative h-10 w-10 rounded-full overflow-hidden bg-gray-200 mr-3">
+                                <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="User" class="object-cover">
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Michael K.</h4>
+                                <p class="text-xs text-gray-500">Computer Science Student</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-xl p-6 relative">
+                    <div class="absolute -top-4 left-6">
+                        <i class="bi bi-quote text-5xl text-blue-200"></i>
+                    </div>
+                    <div class="relative">
+                        <p class="text-gray-600 mb-4">The gamification aspects keep me motivated. I'm learning Spanish and competing with friends makes practicing daily a fun challenge!</p>
+                        <div class="flex items-center">
+                            <div class="relative h-10 w-10 rounded-full overflow-hidden bg-gray-200 mr-3">
+                                <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="User" class="object-cover">
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Priya S.</h4>
+                                <p class="text-xs text-gray-500">Language Learner</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-xl p-6 relative">
+                    <div class="absolute -top-4 left-6">
+                        <i class="bi bi-quote text-5xl text-blue-200"></i>
+                    </div>
+                    <div class="relative">
+                        <p class="text-gray-600 mb-4">As a teacher, the AI-generated lesson plans save me hours of prep time. The platform has transformed how I engage with my students!</p>
+                        <div class="flex items-center">
+                            <div class="relative h-10 w-10 rounded-full overflow-hidden bg-gray-200 mr-3">
+                                <img src="https://images.unsplash.com/photo-1546961329-78bef0414d7c?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="User" class="object-cover">
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Lisa J.</h4>
+                                <p class="text-xs text-gray-500">High School Teacher</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="gradient-bg py-16">
+        <div class="container mx-auto px-4 text-center text-white">
+            <h2 class="text-3xl font-bold mb-4">Ready to Transform Your Learning Experience?</h2>
+            <p class="max-w-2xl mx-auto mb-8">Join thousands of students and educators already using EduSphere to revolutionize education.</p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button onclick="toggleSignupModal()" class="bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50">
+                    Create Free Account
+                </button>
+                <button onclick="showDemo()" class="border-2 border-white text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                    Watch Demo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="bi bi-book-half text-2xl"></i>
+                        <span class="text-xl font-bold">EduSphere</span>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-4">Revolutionizing education with AI, gamification, and inclusive learning experiences.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="bi bi-linkedin"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Platform</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Courses</a></li>
+                        <li><a href="#" class="hover:text-white">Virtual Classrooms</a></li>
+                        <li><a href="#" class="hover:text-white">Language Learning</a></li>
+                        <li><a href="#" class="hover:text-white">Coding Playground</a></li>
+                        <li><a href="#" class="hover:text-white">Scholarships</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Resources</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white">Blog</a></li>
+                        <li><a href="#" class="hover:text-white">Community Forum</a></li>
+                        <li><a href="#" class="hover:text-white">Teacher Resources</a></li>
+                        <li><a href="#" class="hover:text-white">Accessibility</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">About Us</a></li>
+                        <li><a href="#" class="hover:text-white">Careers</a></li>
+                        <li><a href="#" class="hover:text-white">Partners</a></li>
+                        <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
+                <p>&copy; 2023 EduSphere. All rights reserved.</p>
+                <p class="mt-2">Supporting SDG 4: Quality Education, SDG 9: Innovation, and SDG 10: Reduced Inequalities</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Login</h3>
+                <button onclick="toggleLoginModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 mb-2">Email</label>
+                    <input type="email" required class="w-full p-2 border rounded-lg" placeholder="Enter your email">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Password</label>
+                    <input type="password" required class="w-full p-2 border rounded-lg" placeholder="Enter your password">
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember" class="mr-2">
+                        <label for="remember" class="text-sm text-gray-600">Remember me</label>
+                    </div>
+                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800">Forgot password?</a>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center">
+                    <i id="loginSpinner" class="bi bi-arrow-repeat mr-2 loading-spinner"></i>
+                    <span>Login</span>
+                </button>
+                <div class="relative flex items-center">
+                    <div class="flex-grow border-t border-gray-300"></div>
+                    <span class="flex-shrink mx-4 text-gray-600">or</span>
+                    <div class="flex-grow border-t border-gray-300"></div>
+                </div>
+                <button type="button" class="w-full border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 flex items-center justify-center">
+                    <i class="bi bi-google mr-2 text-red-500"></i>
+                    <span>Continue with Google</span>
+                </button>
+                <div class="text-center">
+                    <p class="text-gray-600">
+                        Don't have an account? 
+                        <a href="#" class="text-blue-600 hover:text-blue-800" onclick="switchToSignup()">Sign up</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Create Account</h3>
+                <button onclick="toggleSignupModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            
+            <div class="mb-6">
+                <h4 class="text-lg font-medium mb-2">I am a:</h4>
+                <div class="grid grid-cols-3 gap-3">
+                    <button type="button" onclick="selectRole('student')" id="studentRole" class="border border-gray-300 rounded-lg p-3 text-center hover:bg-gray-50 role-btn">
+                        <i class="bi bi-mortarboard text-blue-600 text-xl"></i>
+                        <p class="text-sm mt-1">Student</p>
+                    </button>
+                    <button type="button" onclick="selectRole('teacher')" id="teacherRole" class="border border-gray-300 rounded-lg p-3 text-center hover:bg-gray-50 role-btn">
+                        <i class="bi bi-person-workspace text-green-600 text-xl"></i>
+                        <p class="text-sm mt-1">Teacher</p>
+                    </button>
+                    <button type="button" onclick="selectRole('parent')" id="parentRole" class="border border-gray-300 rounded-lg p-3 text-center hover:bg-gray-50 role-btn">
+                        <i class="bi bi-people text-purple-600 text-xl"></i>
+                        <p class="text-sm mt-1">Parent</p>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="signupForm" onsubmit="handleSignup(event)" class="space-y-4">
+                <input type="hidden" id="userRole" value="student">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 mb-2">First Name</label>
+                        <input type="text" required class="w-full p-2 border rounded-lg" placeholder="First name">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Last Name</label>
+                        <input type="text" required class="w-full p-2 border rounded-lg" placeholder="Last name">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Email</label>
+                    <input type="email" required class="w-full p-2 border rounded-lg" placeholder="Your email address">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Password</label>
+                    <input type="password" required class="w-full p-2 border rounded-lg" placeholder="Create password (8+ characters)">
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="terms" required class="mr-2">
+                    <label for="terms" class="text-sm text-gray-600">I agree to the <a href="#" class="text-blue-600">Terms of Service</a> and <a href="#" class="text-blue-600">Privacy Policy</a></label>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center">
+                    <i id="signupSpinner" class="bi bi-arrow-repeat mr-2 loading-spinner"></i>
+                    <span>Create Account</span>
+                </button>
+                <div class="relative flex items-center">
+                    <div class="flex-grow border-t border-gray-300"></div>
+                    <span class="flex-shrink mx-4 text-gray-600">or</span>
+                    <div class="flex-grow border-t border-gray-300"></div>
+                </div>
+                <button type="button" class="w-full border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 flex items-center justify-center">
+                    <i class="bi bi-google mr-2 text-red-500"></i>
+                    <span>Sign up with Google</span>
+                </button>
+                <div class="text-center">
+                    <p class="text-gray-600">
+                        Already have an account? 
+                        <a href="#" class="text-blue-600 hover:text-blue-800" onclick="switchToLogin()">Login</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Video Demo Modal -->
+    <div id="videoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-2 max-w-3xl w-full">
+            <div class="flex justify-end mb-2">
+                <button onclick="closeVideoModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="aspect-w-16 aspect-h-9">
+                <div id="videoContainer" class="w-full h-0 pb-[56.25%] relative">
+                    <lottie-player src="https://assets2.lottiefiles.com/packages/lf20_khzniaya.json" background="transparent" speed="1" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" loop autoplay></lottie-player>
+                </div>
+            </div>
+            <div class="p-4 text-center">
+                <h3 class="font-bold text-lg">Revolutionizing Education with AI</h3>
+                <p class="text-sm text-gray-600 mt-1">Watch how EduSphere transforms the learning experience</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Login modal toggle
+        function toggleLoginModal() {
+            const modal = document.getElementById('loginModal');
+            const signupModal = document.getElementById('signupModal');
+            signupModal.classList.add('hidden');
+            modal.classList.toggle('hidden');
+        }
+
+        // Signup modal toggle
+        function toggleSignupModal() {
+            const modal = document.getElementById('signupModal');
+            const loginModal = document.getElementById('loginModal');
+            loginModal.classList.add('hidden');
+            modal.classList.toggle('hidden');
+        }
+
+        // Switch between login and signup
+        function switchToSignup() {
+            toggleLoginModal();
+            toggleSignupModal();
+        }
+
+        function switchToLogin() {
+            toggleSignupModal();
+            toggleLoginModal();
+        }
+
+        // Handle login
+        async function handleLogin(event) {
+            event.preventDefault();
+            const form = event.target;
+            const email = form.querySelector('input[type="email"]').value;
+            const password = form.querySelector('input[type="password"]').value;
+            
+            // Show loading spinner
+            const spinner = document.getElementById('loginSpinner');
+            spinner.style.display = 'inline-block';
+
+            try {
+                const response = await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/mongodb', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer 18LmaAwOVGeGSZFgKndtfR6GCGI3',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        appSlug: 'edusphere-123456',
+                        action: 'read',
+                        collection: 'users',
+                        conditions: { email, password }
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Hide loading spinner
+                spinner.style.display = 'none';
+                
+                if (data.success && data.result.length > 0) {
+                    // Store user data in localStorage
+                    localStorage.setItem('user', JSON.stringify(data.result[0]));
+                    alert('Login successful! Welcome to EduSphere.');
+                    toggleLoginModal();
+                } else {
+                    alert('Invalid credentials. Please try again.');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                // Hide loading spinner
+                spinner.style.display = 'none';
+                alert('An error occurred during login. Please try again later.');
+            }
+        }
+
+        // Select user role in signup
+        function selectRole(role) {
+            document.getElementById('userRole').value = role;
+            
+            // Reset all buttons
+            const buttons = document.querySelectorAll('.role-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-blue-50', 'border-blue-500');
+            });
+            
+            // Highlight selected
+            const selectedBtn = document.getElementById(`${role}Role`);
+            selectedBtn.classList.add('bg-blue-50', 'border-blue-500');
+        }
+
+        // Handle signup
+        async function handleSignup(event) {
+            event.preventDefault();
+            const form = event.target;
+            const firstName = form.querySelector('input[placeholder="First name"]').value;
+            const lastName = form.querySelector('input[placeholder="Last name"]').value;
+            const email = form.querySelector('input[type="email"]').value;
+            const password = form.querySelector('input[type="password"]').value;
+            const role = document.getElementById('userRole').value;
+            
+            // Show loading spinner
+            const spinner = document.getElementById('signupSpinner');
+            spinner.style.display = 'inline-block';
+
+            try {
+                // First check if user already exists
+                const checkUser = await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/mongodb', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer 18LmaAwOVGeGSZFgKndtfR6GCGI3',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        appSlug: 'edusphere-123456',
+                        action: 'read',
+                        collection: 'users',
+                        conditions: { email }
+                    })
+                });
+
+                const userData = await checkUser.json();
+                
+                if (userData.success && userData.result.length > 0) {
+                    spinner.style.display = 'none';
+                    alert('An account with this email already exists. Please login instead.');
+                    return;
+                }
+
+                // Create new user
+                const response = await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/mongodb', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer 18LmaAwOVGeGSZFgKndtfR6GCGI3',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        appSlug: 'edusphere-123456',
+                        action: 'create',
+                        collection: 'users',
+                        data: {
+                            firstName,
+                            lastName,
+                            email,
+                            password, // In a real app, this should be hashed
+                            role,
+                            xp: 0,
+                            level: 1,
+                            badges: [],
+                            joinedDate: new Date().toISOString()
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Hide loading spinner
+                spinner.style.display = 'none';
+                
+                if (data.success) {
+                    alert('Account created successfully! Please login.');
+                    switchToLogin();
+                } else {
+                    alert('Failed to create account. Please try again.');
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                // Hide loading spinner
+                spinner.style.display = 'none';
+                alert('An error occurred during signup. Please try again later.');
+            }
+        }
+
+        // Simulate AI response
+        function simulateAIResponse() {
+            const promptInput = document.getElementById('aiPrompt');
+            const prompt = promptInput.value.trim();
+            
+            if (!prompt) return;
+            
+            // Add user message to chat
+            const chatContainer = document.querySelector('.bg-gray-50.rounded-xl.p-3');
+            const userBubble = document.createElement('div');
+            userBubble.className = 'chat-bubble user-bubble';
+            userBubble.innerHTML = `<p class="text-sm">${prompt}</p>`;
+            chatContainer.appendChild(userBubble);
+            
+            // Clear input
+            promptInput.value = '';
+            
+            // Show loading
+            const loadingBubble = document.getElementById('loadingBubble');
+            loadingBubble.style.display = 'flex';
+            chatContainer.appendChild(loadingBubble);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // Simulate API call to AI with timeout
+            setTimeout(async () => {
+                try {
+                    const response = await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/ai', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer 18LmaAwOVGeGSZFgKndtfR6GCGI3',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            messages: [
+                                {
+                                    role: 'user',
+                                    content: [
+                                        {
+                                            type: 'text',
+                                            text: `You are an educational AI tutor. Please respond to this question briefly: ${prompt}`
+                                        }
+                                    ]
+                                }
+                            ]
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Remove loading bubble and add AI response
+                    loadingBubble.style.display = 'none';
+                    
+                    const aiBubble = document.createElement('div');
+                    aiBubble.className = 'chat-bubble ai-bubble';
+                    aiBubble.innerHTML = `<p class="text-sm">${data.message || "I'm having trouble connecting right now. Please try again later."}</p>`;
+                    chatContainer.appendChild(aiBubble);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                } catch (error) {
+                    console.error('AI response error:', error);
+                    loadingBubble.style.display = 'none';
+                    
+                    const aiBubble = document.createElement('div');
+                    aiBubble.className = 'chat-bubble ai-bubble';
+                    aiBubble.innerHTML = `<p class="text-sm">I'm having trouble connecting right now. Please try again later.</p>`;
+                    chatContainer.appendChild(aiBubble);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+            }, 1500);
+        }
+
+        // Show demo video
+        function showDemo() {
+            const modal = document.getElementById('videoModal');
+            modal.classList.remove('hidden');
+        }
+        
+        // Close video modal
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            modal.classList.add('hidden');
+        }
+        
+        // Toggle dark mode
+        function toggleDarkMode() {
+            const body = document.getElementById('body');
+            const icon = document.getElementById('darkModeIcon');
+            
+            body.classList.toggle('dark');
+            
+            if (body.classList.contains('dark')) {
+                icon.classList.remove('bi-moon');
+                icon.classList.add('bi-sun');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                icon.classList.remove('bi-sun');
+                icon.classList.add('bi-moon');
+                localStorage.setItem('darkMode', 'false');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for dark mode preference
+            if (localStorage.getItem('darkMode') === 'true') {
+                toggleDarkMode();
+            }
+            
+            // Pre-select student role
+            selectRole('student');
+            
+            // Close modals when clicking outside
+            window.onclick = function(event) {
+                const loginModal = document.getElementById('loginModal');
+                const signupModal = document.getElementById('signupModal');
+                const videoModal = document.getElementById('videoModal');
+                
+                if (event.target === loginModal) {
+                    toggleLoginModal();
+                } else if (event.target === signupModal) {
+                    toggleSignupModal();
+                } else if (event.target === videoModal) {
+                    closeVideoModal();
+                }
+            };
+            
+            // Enter key for AI chat
+            const aiPrompt = document.getElementById('aiPrompt');
+            aiPrompt.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    simulateAIResponse();
+                }
+            });
+        });
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
